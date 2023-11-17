@@ -36,6 +36,12 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "jp.neuneu9.window-panel": {
+      "version": "file:jp.neuneu9.window-panel",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,
