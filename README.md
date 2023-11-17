@@ -14,22 +14,25 @@ Package Manager 経由でインストールできます。
 Unity エディタの Package Manager ウインドウを開き、左上の `+` ボタンから `Add package from git URL...` を選択し、  
 
 ```
-
+https://github.com/neuneu9/unity-window-panel.git?path=Packages/jp.neuneu9.window-panel
 ```
 
 を入力して `Add` ボタンを押すか、  
-`Packages/manifest.json` ファイルを開き、次のような項目を追加してください。  
+`Packages/manifest.json` ファイルを開き、`dependencies` フィールドに次のような項目を追加してください。  
 
 ```
-
+"jp.neuneu9.window-panel": "https://github.com/neuneu9/unity-window-panel.git?path=Packages/jp.neuneu9.window-panel",
 ```
 
 ## 使い方
 
 3 種類のコンポーネントがデフォルトで使えます。  
 - `Fade Window Panel`: フェードタイプ  
+  ![fade](https://github.com/neuneu9/unity-window-panel/blob/images/fade.gif)  
 - `Slide In Window Panel`: スライドインタイプ  
+  ![slidein](https://github.com/neuneu9/unity-window-panel/blob/images/slidein.gif)  
 - `Animated Window Panel`: アニメーションタイプ  
+  ![animated](https://github.com/neuneu9/unity-window-panel/blob/images/animated.gif)  
 
 ### 作成方法
 
@@ -78,12 +81,14 @@ NOTE: クリップの長さは任意ですが、Animated Window Panel は 1 [s] 
 
 1. `neuneu9.WindowPanel` を継承したクラスを作成します。  
 1. 次の 2 つのメソッドをオーバーライドしてください。  
-  引数の progress は 0 - 1 のトランジション割合です。  
+  引数の `progress` は 0 - 1 のトランジション割合です。  
     - `void OpenAction(float progress)`: 開くトランジション処理を記述します。  
     - `void CloseAction(float progress)`: 閉じるトランジション処理を記述します。  
 1. 作成したクラススクリプトを Fade Window Panel などのスクリプトの代わりに使用します。  
 
 例として、[DOTween](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676) を使ってポップアップスタイルのウインドウを実装するサンプルを掲載しておきます。  
+
+![popup](https://github.com/neuneu9/unity-window-panel/blob/images/popup.gif)  
 
 ```PopUpWindowPanel.cs
 using UnityEngine;
