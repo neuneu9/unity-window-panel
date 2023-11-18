@@ -1,92 +1,94 @@
 # Unity Window Panel
 
-## このパッケージについて
+[English](README.md) | [日本語](README-ja.md) |  
 
-Unity Window Panel は Unity 用の、シンプルかつ拡張可能なウインドウ UI です。
+## What’s this?
 
-## サポートするバージョン
+'Unity Window Panel' is simple and extensible window UI component for Unity.  
 
-Unity 2020.3 以降
+## Supported Unity versions
 
-## インストール方法
+Unity 2020.3 or higher.  
 
-Package Manager 経由でインストールできます。  
-Unity エディタの Package Manager ウインドウを開き、左上の `+` ボタンから `Add package from git URL...` を選択し、  
+## Installation
 
-```
+Via Package Manager.  
+Open the Package Manager window in your Unity editor, select `Add package from git URL...` from the `+` button in the top left, enter following and press the `Add` button.  
+
+```text
 https://github.com/neuneu9/unity-window-panel.git?path=Packages/jp.neuneu9.window-panel
 ```
 
-を入力して `Add` ボタンを押すか、  
-`Packages/manifest.json` ファイルを開き、`dependencies` フィールドに次のような項目を追加してください。  
+Or open the `Packages/manifest.json` file and add an item like the following to the `dependencies` field.  
 
-```
+```json
 "jp.neuneu9.window-panel": "https://github.com/neuneu9/unity-window-panel.git?path=Packages/jp.neuneu9.window-panel",
 ```
 
-## 使い方
+## How to use
 
-3 種類のコンポーネントがデフォルトで使えます。  
-- `Fade Window Panel`: フェードタイプ  
+3 components are available by default:  
+
+- `Fade Window Panel`: Fade style  
   ![fade](https://github.com/neuneu9/unity-window-panel/blob/images/fade.gif)  
-- `Slide In Window Panel`: スライドインタイプ  
+- `Slide In Window Panel`: Slide-in style  
   ![slidein](https://github.com/neuneu9/unity-window-panel/blob/images/slidein.gif)  
-- `Animated Window Panel`: アニメーションタイプ  
+- `Animated Window Panel`: Animation style  
   ![animated](https://github.com/neuneu9/unity-window-panel/blob/images/animated.gif)  
 
-### 作成方法
+### Creation
 
-メニューの `GameObject -> UI -> Window Panel -> *** Window Panel` を選択すると構築済みのゲームオブジェクトが生成されます。  
+Select `GameObject -> UI -> Window Panel -> *** Window Panel` in the menu to create a constructed GameObject.  
 
-### 初期状態の変更
+### Set initial open/close
 
-インスペクターの `Default To Open` を押すと開いた状態、`Default To Close` を押すと閉じた状態になります。  
+Press `Default To Open` to set it open, and press `Default To Close` to set it close in the inspector.  
 
-### インスペクター項目
+### Inspector exposed parameters
 
-| 項目名 | 説明 |
+| Name | Explanation |
 | - | - |
-| Window | ウインドウオブジェクトへの参照 |
-| Background | 背面オブジェクトへの参照 |
-| Skip Opening On Clicked | 開く途中でクリックされたら即開き終えるかどうか |
-| Close On Background Clicked | 背面をクリックされたら閉じるかどうか |
-| Open Duration | 開くトランジションの時間 [s] |
-| Close Duration | 閉じるトランジションの時間 [s] |
-| On Pre Open | 開くトランジションを開始する直前に呼ばれる |
-| On Opened | 開き終えた直後に呼ばれる |
-| On Pre Close | 閉じるトランジションを開始する直前に呼ばれる |
-| On Closed | 閉じ終えた直後に呼ばれる |
+| Window | Reference to window object |
+| Background | Reference to background object |
+| Skip Opening On Clicked | Whether to complete the transition immediately if clicked while open transitioning |
+| Close On Background Clicked | Whether to close if the background is clicked |
+| Open Duration | Open transition time [s] |
+| Close Duration | Close transition time [s] |
+| On Pre Open | Called before starting the open transition |
+| On Opened | Called after opened |
+| On Pre Close | Called before starting the close transition |
+| On Closed | Called after closed |
 
-### スクリプティング API
+### Scripting APIs
 
-| 関数名 | 説明 |
+| Method name | Explanation |
 | - | - |
-| `Open()`<br>`Open(UnityAction onCompleted)` | ウインドウパネルを開きます。すでに開いている・開こうとしている場合は何もしません。<br>`onCompleted`: 完了コールバック |
-| `Close()`<br>`Close(UnityAction onCompleted)` | ウインドウパネルを閉じます。すでに閉じている・閉じようとしている場合は何もしません。<br>`onCompleted`: 完了コールバック |
-| `OpenImmediately()` | ウインドウパネルを瞬時に開きます。すでに開いている場合は何もしません。 |
-| `CloseImmediately()` | ウインドウパネルを瞬時に閉じます。すでに閉じている場合は何もしません。 |
-| `GetWindow<TWindow>()` | ウインドウオブジェクトのコンポーネントを取得します。<br>`TWindow`: 取得するコンポーネントの型 |
+| `Open()`<br>`Open(UnityAction onCompleted)` | Open the window panel. If it's already open or about to be opened, nothing will be done.<br>`onCompleted`: Completion callback |
+| `Close()`<br>`Close(UnityAction onCompleted)` | Close the window panel. If it's already closed or about to close, nothing will be done.<br>`onCompleted`: Completion callback |
+| `OpenImmediately()` | Open the window panel instantly. If it's already open, nothing will be done. |
+| `CloseImmediately()` | Close the window panel instantly. If it's already closed, nothing will be done. |
+| `GetWindow<TWindow>()` | Get a component of the window object.<br>`TWindow`: Type of component to get |
 
-### Animated Window Panel のアニメーションをカスタマイズ
+### Customize animations of Animated Window Panel
 
-1. 開くアニメーションおよび閉じるアニメーションの Animation Clip を作成します。  
-NOTE: クリップの長さは任意ですが、Animated Window Panel は 1 [s] に正規化して扱います。  
-開閉トランジションの長さの変更はインスペクタの `Open Duration` および `Close Duration` でおこなってください。  
-1. `Packages/jp.neuneu9.window-panel/Animations/WindowPanel.controller` をベースにした Animator Override Controller を作成します。  
-1. 作成した Animator Override Controller の `window_panel_open` に開くアニメーションを、`window_panel_close` に閉じるアニメーションをセットしてください。  
+1. Create open and close animation clips  
+NOTE: The clip length is arbitrary, but Animated Window Panel normalizes it to 1 [s].  
+To set the length of the open/close transition, use `Open Duration` and `Close Duration` in the inspector.  
+1. Create an Animator Override Controller based on `Packages/jp.neuneu9.window-panel/Animations/WindowPanel.controller`.  
+1. Set the open animation clip to `window_panel_open` and the close animation clip to `window_panel_close`.  
 
-## 拡張
+## Extension
 
-自分で任意の動きを実装したい場合は、次の手順で簡単に拡張できます。  
+Want to use your behavior? It’s easy.  
 
-1. `neuneu9.WindowPanel` を継承したクラスを作成します。  
-1. 次の 2 つのメソッドをオーバーライドしてください。  
-  引数の `progress` は 0 - 1 のトランジション割合です。  
-    - `void OpenAction(float progress)`: 開くトランジション処理を記述します。  
-    - `void CloseAction(float progress)`: 閉じるトランジション処理を記述します。  
-1. 作成したクラススクリプトを Fade Window Panel などのスクリプトの代わりに使用します。  
+1. Create a class that inherits from `neuneu9.WindowPanel`.  
+1. Override the following two methods:  
+  (The argument `progress` is a transition rate between 0 and 1.)  
+    - `void OpenAction(float progress)`: Code the open transition processing.  
+    - `void CloseAction(float progress)`: Code the close transition processing.  
+1. Use the class script instead of scripts such as Fade Window Panel.  
 
-例として、[DOTween](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676) を使ってポップアップスタイルのウインドウを実装するサンプルを掲載しておきます。  
+Below is an example implementation of a pop-up styled window using [DOTween](https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676).  
 
 ![popup](https://github.com/neuneu9/unity-window-panel/blob/images/popup.gif)  
 
