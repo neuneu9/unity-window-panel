@@ -3,5 +3,9 @@
   "displayName": "Window Panel",
   "version": "1.0.0",
   "unity": "2020.3",
-  "description": "Simple and extensible window UI component for Unity."
+  "description": "Simple and extensible window UI component for Unity.",
+  "author": {
+    "name": "neuneu9",
+    "url": "https://github.com/neuneu9"
+  }
 }

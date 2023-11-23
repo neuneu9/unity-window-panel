@@ -194,27 +194,36 @@ namespace neuneu9.WindowPanel
                 return;
             }
 
-            _state = State.Opening;
+            if (_process != null)
+            {
+                StopCoroutine(_process);
+            }
 
+            _process = StartCoroutine(OpenAsync(onCompleted));
+        }
+
+        public IEnumerator OpenAsync(UnityAction onCompleted = null)
+        {
+            if (_state == State.Opening || _state == State.Opened)
+            {
+                yield break;
+            }
+
+            _state = State.Opening;
             _onPreOpen.Invoke();
 
             _canvasGroup.alpha = 1f;
             _canvasGroup.blocksRaycasts = true;
             _window.blocksRaycasts = false;
 
-            if (_process != null)
-            {
-                StopCoroutine(_process);
-            }
+            yield return DoOpenAction();
 
-            _process = StartCoroutine(DoOpen(() =>
-            {
-                _window.blocksRaycasts = true;
-                onCompleted?.Invoke();
-                _onOpened.Invoke();
+            _window.blocksRaycasts = true;
 
-                _state = State.Opened;
-            }));
+            _state = State.Opened;
+            _onOpened.Invoke();
+
+            onCompleted?.Invoke();
         }
 
         /// <summary>
@@ -228,27 +237,35 @@ namespace neuneu9.WindowPanel
                 return;
             }
 
-            _state = State.Closing;
-
-            onCompleted += () =>
-            {
-                _canvasGroup.alpha = 0f;
-                _canvasGroup.blocksRaycasts = false;
-                _onClosed.Invoke();
-
-                _state = State.Closed;
-            };
-
-            _onPreClose.Invoke();
-
-            _window.blocksRaycasts = false;
-
             if (_process != null)
             {
                 StopCoroutine(_process);
             }
 
-            _process = StartCoroutine(DoClose(onCompleted));
+            _process = StartCoroutine(CloseAsync(onCompleted));
+        }
+
+        public IEnumerator CloseAsync(UnityAction onCompleted = null)
+        {
+            if (_state == State.Closing || _state == State.Closed)
+            {
+                yield break;
+            }
+
+            _state = State.Closing;
+            _onPreClose.Invoke();
+
+            _window.blocksRaycasts = false;
+
+            yield return DoCloseAction();
+
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
+
+            _state = State.Closed;
+            _onClosed.Invoke();
+
+            onCompleted?.Invoke();
         }
 
         /// <summary>
@@ -285,9 +302,8 @@ namespace neuneu9.WindowPanel
 
             _window.blocksRaycasts = true;
 
-            _onOpened.Invoke();
-
             _state = State.Opened;
+            _onOpened.Invoke();
         }
 
         /// <summary>
@@ -314,12 +330,11 @@ namespace neuneu9.WindowPanel
 
             _window.blocksRaycasts = false;
 
-            _onClosed.Invoke();
-
             _state = State.Closed;
+            _onClosed.Invoke();
         }
 
-        private IEnumerator DoOpen(UnityAction onCompleted)
+        private IEnumerator DoOpenAction()
         {
             OpenAction(0f);
             _background.alpha = 0f;
@@ -337,11 +352,9 @@ namespace neuneu9.WindowPanel
             OpenAction(1f);
             _background.alpha = 1f;
             yield return null;
-
-            onCompleted?.Invoke();
         }
 
-        private IEnumerator DoClose(UnityAction onCompleted)
+        private IEnumerator DoCloseAction()
         {
             CloseAction(0f);
             _background.alpha = 1f;
@@ -359,8 +372,6 @@ namespace neuneu9.WindowPanel
             CloseAction(1f);
             _background.alpha = 0f;
             yield return null;
-
-            onCompleted?.Invoke();
         }
 
 
