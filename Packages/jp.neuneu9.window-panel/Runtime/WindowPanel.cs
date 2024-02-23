@@ -42,6 +42,9 @@ namespace neuneu9.WindowPanel
         }
 
 
+        [SerializeField, HideInInspector]
+        protected State _state = State.Opened;
+
         /// <summary>
         /// ウインドウ
         /// </summary>
@@ -110,8 +113,6 @@ namespace neuneu9.WindowPanel
         /// </summary>
         public UnityEvent OnClosed => _onClosed;
 
-
-        protected State _state = State.Closed;
         private Coroutine _process = null;
         private CanvasGroup _canvasGroup = null;
 
@@ -133,7 +134,21 @@ namespace neuneu9.WindowPanel
         {
             _canvasGroup = GetComponent<CanvasGroup>();
 
-            _state = _canvasGroup.blocksRaycasts ? State.Opened : State.Closed;
+            switch (_state)
+            {
+                case State.Closed:
+                case State.Closing:
+                    CompleteClose();
+                    break;
+
+                case State.Opened:
+                case State.Opening:
+                    CompleteOpen();
+                    break;
+
+                default:
+                    throw new IndexOutOfRangeException();
+            }
 
             // 背面クリックイベントの登録
             if (Application.isPlaying)
@@ -191,6 +206,7 @@ namespace neuneu9.WindowPanel
         {
             if (_state == State.Opening || _state == State.Opened)
             {
+                Debug.LogWarning("Already open or about to open.");
                 return;
             }
 
@@ -206,6 +222,7 @@ namespace neuneu9.WindowPanel
         {
             if (_state == State.Opening || _state == State.Opened)
             {
+                Debug.LogWarning("Already open or about to open.");
                 yield break;
             }
 
@@ -218,10 +235,7 @@ namespace neuneu9.WindowPanel
 
             yield return DoOpenAction();
 
-            _window.blocksRaycasts = true;
-
-            _state = State.Opened;
-            _onOpened.Invoke();
+            CompleteOpen();
 
             onCompleted?.Invoke();
         }
@@ -234,6 +248,7 @@ namespace neuneu9.WindowPanel
         {
             if (_state == State.Closing || _state == State.Closed)
             {
+                Debug.LogWarning("Already close or about to close.");
                 return;
             }
 
@@ -249,21 +264,20 @@ namespace neuneu9.WindowPanel
         {
             if (_state == State.Closing || _state == State.Closed)
             {
+                Debug.LogWarning("Already close or about to close.");
                 yield break;
             }
 
             _state = State.Closing;
             _onPreClose.Invoke();
 
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
             _window.blocksRaycasts = false;
 
             yield return DoCloseAction();
 
-            _canvasGroup.alpha = 0f;
-            _canvasGroup.blocksRaycasts = false;
-
-            _state = State.Closed;
-            _onClosed.Invoke();
+            CompleteClose();
 
             onCompleted?.Invoke();
         }
@@ -293,17 +307,15 @@ namespace neuneu9.WindowPanel
                 _onPreOpen.Invoke();
             }
 
+            if (_process != null)
+            {
+                StopCoroutine(_process);
+                _process = null;
+            }
+
             OpenAction(1f);
 
-            _canvasGroup.alpha = 1f;
-            _canvasGroup.blocksRaycasts = true;
-
-            _background.alpha = 1f;
-
-            _window.blocksRaycasts = true;
-
-            _state = State.Opened;
-            _onOpened.Invoke();
+            CompleteOpen();
         }
 
         /// <summary>
@@ -321,17 +333,15 @@ namespace neuneu9.WindowPanel
                 _onPreClose.Invoke();
             }
 
-            OpenAction(0f);
+            if (_process != null)
+            {
+                StopCoroutine(_process);
+                _process = null;
+            }
 
-            _canvasGroup.alpha = 0f;
-            _canvasGroup.blocksRaycasts = false;
+            CloseAction(1f);
 
-            _background.alpha = 0f;
-
-            _window.blocksRaycasts = false;
-
-            _state = State.Closed;
-            _onClosed.Invoke();
+            CompleteClose();
         }
 
         private IEnumerator DoOpenAction()
@@ -374,6 +384,32 @@ namespace neuneu9.WindowPanel
             yield return null;
         }
 
+        private void CompleteOpen()
+        {
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
+
+            _background.alpha = 1f;
+
+            _window.blocksRaycasts = true;
+
+            _state = State.Opened;
+            _onOpened.Invoke();
+        }
+
+        private void CompleteClose()
+        {
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
+
+            _background.alpha = 0f;
+
+            _window.blocksRaycasts = false;
+
+            _state = State.Closed;
+            _onClosed.Invoke();
+        }
+
 
 #if UNITY_EDITOR
         [CustomEditor(typeof(WindowPanel), true)]
@@ -383,8 +419,6 @@ namespace neuneu9.WindowPanel
             {
                 var self = target as WindowPanel;
 
-                EditorGUILayout.Space();
-
                 EditorGUILayout.BeginHorizontal();
 
                 bool isReady = self._background != null && self._window != null;
@@ -392,33 +426,41 @@ namespace neuneu9.WindowPanel
                 {
                     if (EditorApplication.isPlaying)
                     {
+                        EditorGUI.BeginDisabledGroup(self._state == State.Opening || self._state == State.Opened);
                         if (GUILayout.Button("Open"))
                         {
                             self.Open();
                         }
+                        EditorGUI.EndDisabledGroup();
 
+                        EditorGUI.BeginDisabledGroup(self._state == State.Closing || self._state == State.Closed);
                         if (GUILayout.Button("Close"))
                         {
                             self.Close();
                         }
+                        EditorGUI.EndDisabledGroup();
                     }
                     else
                     {
+                        EditorGUI.BeginDisabledGroup(self._state == State.Opened);
                         if (GUILayout.Button("Default To Open"))
                         {
-                            Undo.RegisterFullObjectHierarchyUndo(self, "Open " + self.name);
+                            Undo.RegisterFullObjectHierarchyUndo(self.gameObject, "Open " + self.name);
 
                             self.Awake();
                             self.OpenImmediately();
                         }
+                        EditorGUI.EndDisabledGroup();
 
+                        EditorGUI.BeginDisabledGroup(self._state == State.Closed);
                         if (GUILayout.Button("Default To Close"))
                         {
-                            Undo.RegisterFullObjectHierarchyUndo(self, "Close " + self.name);
+                            Undo.RegisterFullObjectHierarchyUndo(self.gameObject, "Close " + self.name);
 
                             self.Awake();
                             self.CloseImmediately();
                         }
+                        EditorGUI.EndDisabledGroup();
                     }
                 }
 

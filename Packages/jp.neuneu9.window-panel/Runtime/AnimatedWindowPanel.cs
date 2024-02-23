@@ -1,4 +1,8 @@
+using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor.Animations;
+#endif
 
 namespace neuneu9.WindowPanel
 {
@@ -26,13 +30,37 @@ namespace neuneu9.WindowPanel
 
             if (_state == State.Opened)
             {
-                _animator.CrossFadeInFixedTime(_openStateName, 0f, _layerIndex, 1f);
+                JumpTo(_openStateName, _layerIndex, 1f);
+            }
+            if (_state == State.Closed)
+            {
+                JumpTo(_closeStateName, _layerIndex, 1f);
             }
         }
 
+        private void JumpTo(string stateName, int layerIndex, float progress)
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                var controller = _animator.runtimeAnimatorController as AnimatorController;
+                var state = controller.layers[layerIndex].stateMachine.states.SingleOrDefault(x => x.state.name.Equals(stateName));
+                var clip = state.state.motion as AnimationClip;
+                clip.SampleAnimation(_animator.gameObject, clip.length * progress);
+                return;
+            }
+#endif
+            _animator.CrossFade(stateName, 0f, layerIndex, progress);
+        }
 
         protected override void OpenAction(float progress)
         {
+            if (!Application.isPlaying)
+            {
+                JumpTo(_openStateName, _layerIndex, progress);
+                return;
+            }
+
             var stateInfo = _animator.GetCurrentAnimatorStateInfo(_layerIndex);
             if (!stateInfo.IsName(_openStateName))
             {
@@ -46,6 +74,12 @@ namespace neuneu9.WindowPanel
 
         protected override void CloseAction(float progress)
         {
+            if (!Application.isPlaying)
+            {
+                JumpTo(_closeStateName, _layerIndex, progress);
+                return;
+            }
+
             var stateInfo = _animator.GetCurrentAnimatorStateInfo(_layerIndex);
             if (!stateInfo.IsName(_closeStateName))
             {

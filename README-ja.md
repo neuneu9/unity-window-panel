@@ -110,28 +110,16 @@ public class PopUpWindowPanel : WindowPanel
     private Vector3 _scaleOnClosed = new Vector3(0.6f, 0.6f, 1f);
 
 
-    private RectTransform _windowRectTransform = null;
-
-
-    protected override void Awake()
-    {
-        base.Awake();
-
-        _windowRectTransform = _window.transform as RectTransform;
-    }
-
     protected override void OpenAction(float progress)
     {
         _window.alpha = Mathf.Lerp(0f, 1f, progress * 2f);
-
-        _windowRectTransform.localScale = Vector3.LerpUnclamped(_scaleOnClosed, Vector3.one, DOVirtual.EasedValue(0f, 1f, progress, _openEase));
+        _window.transform.localScale = Vector3.LerpUnclamped(_scaleOnClosed, Vector3.one, DOVirtual.EasedValue(0f, 1f, progress, _openEase));
     }
 
     protected override void CloseAction(float progress)
     {
         _window.alpha = Mathf.Lerp(1f, 0f, (progress - 0.5f) * 2f);
-
-        _windowRectTransform.localScale = Vector3.LerpUnclamped(Vector3.one, _scaleOnClosed, DOVirtual.EasedValue(0f, 1f, progress, _closeEase));
+        _window.transform.localScale = Vector3.LerpUnclamped(Vector3.one, _scaleOnClosed, DOVirtual.EasedValue(0f, 1f, progress, _closeEase));
     }
 }
 ```
