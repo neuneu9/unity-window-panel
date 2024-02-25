@@ -43,10 +43,21 @@ namespace neuneu9.WindowPanel
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                var controller = _animator.runtimeAnimatorController as AnimatorController;
-                var state = controller.layers[layerIndex].stateMachine.states.SingleOrDefault(x => x.state.name.Equals(stateName));
-                var clip = state.state.motion as AnimationClip;
-                clip.SampleAnimation(_animator.gameObject, clip.length * progress);
+                if (_animator.runtimeAnimatorController is AnimatorOverrideController overrideController)
+                {
+                    var controller = overrideController.runtimeAnimatorController as AnimatorController;
+                    var state = controller.layers[layerIndex].stateMachine.states.SingleOrDefault(x => x.state.name.Equals(stateName));
+                    var clip = state.state.motion as AnimationClip;
+                    overrideController[clip].SampleAnimation(_animator.gameObject, overrideController[clip].length * progress);
+                }
+                else
+                {
+                    var controller = _animator.runtimeAnimatorController as AnimatorController;
+                    var state = controller.layers[layerIndex].stateMachine.states.SingleOrDefault(x => x.state.name.Equals(stateName));
+                    var clip = state.state.motion as AnimationClip;
+                    clip.SampleAnimation(_animator.gameObject, clip.length * progress);
+                }
+
                 return;
             }
 #endif
